@@ -1,2 +1,2 @@
 [workspace]
-members = ["src/revmdemo", "src/signextend"]
+members = ["src/revmdemo", "src/signextend", "src/byte"]
