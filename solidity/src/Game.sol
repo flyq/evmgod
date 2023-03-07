@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import "./generals/IGeneral.sol";
-import "./utils/Attacks.sol";
-import "./utils/Fleet.sol";
-import "./utils/Board.sol";
+import "./IGeneral.sol";
+import "./Attacks.sol";
+import "./Fleet.sol";
+import "./Board.sol";
 
 error ChallengeDoesNotExist();
 error ChallengeAldreadyExists();

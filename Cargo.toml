@@ -1,2 +1,9 @@
 [workspace]
-members = ["src/revmdemo", "src/signextend", "src/byte", "src/evmthroughctfs1"]
+members = [
+    "src/revmdemo",
+    "src/signextend",
+    "src/byte",
+    "src/evmthroughctfs1",
+    "src/evmthroughctfs2",
+    "src/evmthroughctfs2_1",
+]
