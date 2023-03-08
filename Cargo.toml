@@ -6,4 +6,5 @@ members = [
     "src/evmthroughctfs1",
     "src/evmthroughctfs2",
     "src/evmthroughctfs2_1",
+    "src/evmthroughctfs2_2",
 ]
