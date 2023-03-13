@@ -1,0 +1,193 @@
+// forge build, copy the solidity/out/Counter.sol/Counter.json's bytecode
+
+/// init the evm memory, store the free memroy pointer: 0x80
+
+[00]	PUSH1	80
+[02]	PUSH1	40
+[04]	MSTORE	
+
+// check: call value == 0? continue : revert
+
+[05]	CALLVALUE	
+[06]	DUP1	
+[07]	ISZERO	
+[08]	PUSH2	0010
+[0b]	JUMPI	
+[0c]	PUSH1	00
+[0e]	DUP1	
+[0f]	REVERT	
+[10]	JUMPDEST	
+[11]	POP	
+
+// copy bytecode from bytecode[0x1f](that is 0x60) to bytecode[0x1f + 0xf7](that is 0x33)
+// and store start memory 0x00;
+// 0x...f3fe 6080..0033
+[12]	PUSH1	f7
+[14]	DUP1	
+[15]	PUSH2	001f
+[18]	PUSH1	00
+[1a]	CODECOPY
+
+// return the memory from memory[0x00] to memory[0xf7], which is deployed bytecode
+[1b]	PUSH1	00
+[1d]	RETURN	
+
+
+[1e]	INVALID	
+
+// deployed code
+[1f]	PUSH1	80
+[21]	PUSH1	40
+[23]	MSTORE	
+[24]	CALLVALUE	
+[25]	DUP1	
+[26]	ISZERO	
+[27]	PUSH1	0f
+[29]	JUMPI	
+[2a]	PUSH1	00
+[2c]	DUP1	
+[2d]	REVERT	
+[2e]	JUMPDEST	
+[2f]	POP	
+[30]	PUSH1	04
+[32]	CALLDATASIZE	
+[33]	LT	
+[34]	PUSH1	3c
+[36]	JUMPI	
+[37]	PUSH1	00
+[39]	CALLDATALOAD	
+[3a]	PUSH1	e0
+[3c]	SHR	
+[3d]	DUP1	
+[3e]	PUSH4	3fb5c1cb
+[43]	EQ	
+[44]	PUSH1	41
+[46]	JUMPI	
+[47]	DUP1	
+[48]	PUSH4	8381f58a
+[4d]	EQ	
+[4e]	PUSH1	53
+[50]	JUMPI	
+[51]	DUP1	
+[52]	PUSH4	d09de08a
+[57]	EQ	
+[58]	PUSH1	6d
+[5a]	JUMPI	
+[5b]	JUMPDEST	
+[5c]	PUSH1	00
+[5e]	DUP1	
+[5f]	REVERT	
+[60]	JUMPDEST	
+[61]	PUSH1	51
+[63]	PUSH1	4c
+[65]	CALLDATASIZE	
+[66]	PUSH1	04
+[68]	PUSH1	83
+[6a]	JUMP	
+[6b]	JUMPDEST	
+[6c]	PUSH1	00
+[6e]	SSTORE	
+[6f]	JUMP	
+[70]	JUMPDEST	
+[71]	STOP	
+[72]	JUMPDEST	
+[73]	PUSH1	5b
+[75]	PUSH1	00
+[77]	SLOAD	
+[78]	DUP2	
+[79]	JUMP	
+[7a]	JUMPDEST	
+[7b]	PUSH1	40
+[7d]	MLOAD	
+[7e]	SWAP1	
+[7f]	DUP2	
+[80]	MSTORE	
+[81]	PUSH1	20
+[83]	ADD	
+[84]	PUSH1	40
+[86]	MLOAD	
+[87]	DUP1	
+[88]	SWAP2	
+[89]	SUB	
+[8a]	SWAP1	
+[8b]	RETURN	
+[8c]	JUMPDEST	
+[8d]	PUSH1	51
+[8f]	PUSH1	00
+[91]	DUP1	
+[92]	SLOAD	
+[93]	SWAP1	
+[94]	DUP1	
+[95]	PUSH1	7c
+[97]	DUP4	
+[98]	PUSH1	9b
+[9a]	JUMP	
+[9b]	JUMPDEST	
+[9c]	SWAP2	
+[9d]	SWAP1	
+[9e]	POP	
+[9f]	SSTORE	
+[a0]	POP	
+[a1]	JUMP	
+[a2]	JUMPDEST	
+[a3]	PUSH1	00
+[a5]	PUSH1	20
+[a7]	DUP3	
+[a8]	DUP5	
+[a9]	SUB	
+[aa]	SLT	
+[ab]	ISZERO	
+[ac]	PUSH1	94
+[ae]	JUMPI	
+[af]	PUSH1	00
+[b1]	DUP1	
+[b2]	REVERT	
+[b3]	JUMPDEST	
+[b4]	POP	
+[b5]	CALLDATALOAD	
+[b6]	SWAP2	
+[b7]	SWAP1	
+[b8]	POP	
+[b9]	JUMP	
+[ba]	JUMPDEST	
+[bb]	PUSH1	00
+[bd]	PUSH1	01
+[bf]	DUP3	
+[c0]	ADD	
+[c1]	PUSH1	ba
+[c3]	JUMPI	
+[c4]	PUSH4	4e487b71
+[c9]	PUSH1	e0
+[cb]	SHL	
+[cc]	PUSH1	00
+[ce]	MSTORE	
+[cf]	PUSH1	11
+[d1]	PUSH1	04
+[d3]	MSTORE	
+[d4]	PUSH1	24
+[d6]	PUSH1	00
+[d8]	REVERT	
+[d9]	JUMPDEST	
+[da]	POP	
+[db]	PUSH1	01
+[dd]	ADD	
+[de]	SWAP1	
+[df]	JUMP	
+[e0]	INVALID	
+[e1]	LOG2	
+[e2]	PUSH5	6970667358
+[e8]	INVALID	
+[e9]	SLT	
+[ea]	SHA3	
+[eb]	INVALID	
+[ec]	MULMOD	
+[ed]	LOG1	
+[ee]	INVALID	
+[ef]	BALANCE	
+[f0]	SWAP15	
+[f1]	SWAP13	
+[f2]	INVALID	
+[f3]	PUSH27	d96dcaaa5898db5f9387294e298890436e1b05f5d8ee0564736f6c
+[10f]	PUSH4	43000811
+[114]	STOP	
+[115]	CALLER	

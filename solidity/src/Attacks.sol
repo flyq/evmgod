@@ -19,21 +19,17 @@ library Attacks {
     // zero_mask is same as [...63 zeros ... 1 ... 63 zeros ... 1 ... 63 zeros ... 1]
     uint256 private constant FIRST_CELL = 0x100000000000000010000000000000001;
 
-    function isOfType(
-        uint256 attacks,
-        uint256 cellIdx,
-        uint256 attackType
-    ) internal pure returns (bool) {
+    function isOfType(uint256 attacks, uint256 cellIdx, uint256 attackType) internal pure returns (bool) {
         // cell of interest is at shiftBy = attackType * 64 + cellIdx = (attackType << 6) + cellIdx
         // need to check whether attacks & (1 << shiftBy) is non-zero
         return (attacks & (1 << ((attackType << 6) + cellIdx))) > 0;
     }
 
-    function markAs(
-        uint256 attacks,
-        uint256 cellIdx,
-        uint256 attackType
-    ) internal pure returns (uint256 updatedAttacks) {
+    function markAs(uint256 attacks, uint256 cellIdx, uint256 attackType)
+        internal
+        pure
+        returns (uint256 updatedAttacks)
+    {
         // zeroMask is for zeroing out all attackTypes for a given cell
         uint256 zeroMask = ~(FIRST_CELL << cellIdx);
         // oneMask is for setting bit at attackType to 1
@@ -41,15 +37,8 @@ library Attacks {
         return (attacks & zeroMask) | oneMask;
     }
 
-    function numberOfEmptyCells(uint256 attacks)
-        internal
-        pure
-        returns (uint256)
-    {
-        return
-            hammingDistance64(
-                (attacks >> (UNTOUCHED << 6)) & 0xFFFFFFFFFFFFFFFF
-            );
+    function numberOfEmptyCells(uint256 attacks) internal pure returns (uint256) {
+        return hammingDistance64((attacks >> (UNTOUCHED << 6)) & 0xFFFFFFFFFFFFFFFF);
     }
 
     function numberOfMisses(uint256 attacks) internal pure returns (uint256) {
@@ -62,9 +51,7 @@ library Attacks {
 
     function hasWon(uint256 attacks) internal pure returns (bool) {
         // hasWon is when numberOfHits == 21
-        return
-            hammingDistance64((attacks >> (HIT << 6)) & 0xFFFFFFFFFFFFFFFF) ==
-            21; // 21 is total number of cells occupied by ships
+        return hammingDistance64((attacks >> (HIT << 6)) & 0xFFFFFFFFFFFFFFFF) == 21; // 21 is total number of cells occupied by ships
     }
 
     function hammingDistance64(uint256 x) internal pure returns (uint256) {

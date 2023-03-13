@@ -11,11 +11,7 @@ error ShipCollidesOrTooClose(uint256 shipType);
  * The shipType values are from Fleet.PATROL, Fleet.DESTROYER1, etc.
  */
 library Board {
-    function getShipAt(uint256 board, uint256 cellIdx)
-        internal
-        pure
-        returns (uint256)
-    {
+    function getShipAt(uint256 board, uint256 cellIdx) internal pure returns (uint256) {
         return (board >> (cellIdx * 3)) & 0x7;
     }
 
@@ -26,12 +22,10 @@ library Board {
     }
 
     // assumes startCoord < endCoord
-    function placeShip(
-        BuildData memory buildData,
-        uint256 startCoord,
-        uint256 endCoord,
-        uint256 shipType
-    ) internal pure {
+    function placeShip(BuildData memory buildData, uint256 startCoord, uint256 endCoord, uint256 shipType)
+        internal
+        pure
+    {
         // TODO is there a constant time bit operation that we can use instead of a loop in the function?
         uint256 startY = startCoord >> 3; // divide by 8
         uint256 endY = endCoord >> 3;
@@ -48,8 +42,9 @@ library Board {
                 ship |= shipType << (3 * ((y << 3) + x));
             }
         }
-        if (ship & buildData.occupancyGrid != 0)
+        if (ship & buildData.occupancyGrid != 0) {
             revert ShipCollidesOrTooClose(shipType);
+        }
 
         if (startX > 0) {
             startX--;

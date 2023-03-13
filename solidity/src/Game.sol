@@ -32,7 +32,7 @@ error InvalidMaxTurns();
  *    to reveal your fleet and start the battle. Both of these operations
  *    can be performed by a 3rd party facilitator that will be compensated
  *    by a percentage of game bid.
-
+ *
  * (Fleet reveal is necessary because fleet is initially obfuscated by
  * providing only the hash of the fleet. This is so that opponents don't
  * know each other's fleet before the battle begins).
@@ -48,11 +48,7 @@ contract Game {
         uint96 facilitatorPercentage,
         address preferredOpponent
     );
-    event ChallengeAccepted(
-        bytes32 indexed challengeHash,
-        address indexed general,
-        uint96 fleetHash
-    );
+    event ChallengeAccepted(bytes32 indexed challengeHash, address indexed general, uint96 fleetHash);
     event ChallengeModified(
         bytes32 indexed challengeHash,
         uint256 indexed bidAmount,
@@ -60,11 +56,7 @@ contract Game {
         address preferredOpponent
     );
     event ChallengeWithdrawn(bytes32 indexed challengeHash);
-    event FleetRevealed(
-        uint96 indexed fleetHash,
-        uint256 indexed fleet,
-        bytes32 salt
-    );
+    event FleetRevealed(uint96 indexed fleetHash, uint256 indexed fleet, bytes32 salt);
     event BattleConcluded(
         bytes32 indexed challengeHash,
         address indexed challengerGeneral,
@@ -94,9 +86,9 @@ contract Game {
     struct Gear {
         IGeneral general; // the general that contains the playing logic
         uint96 fleetHash; // hash of the fleet
-        // hash is necessary so that players don't know each other fleet.
-        // see revealFleet to understand how hash is computed.
-        // using 96 bits for the hash so that entire struct is one word.
+            // hash is necessary so that players don't know each other fleet.
+            // see revealFleet to understand how hash is computed.
+            // using 96 bits for the hash so that entire struct is one word.
     }
 
     // challengeHash to Challenge
@@ -104,31 +96,17 @@ contract Game {
     // all challengeHashes
     bytes32[] public challengeHashes;
 
-    function getAllChallenges()
-        external
-        view
-        returns (Challenge[] memory allChallenges)
-    {
+    function getAllChallenges() external view returns (Challenge[] memory allChallenges) {
         allChallenges = new Challenge[](challengeHashes.length);
         for (uint256 i = 0; i < allChallenges.length; i++) {
             allChallenges[i] = challenges[challengeHashes[i]];
         }
     }
 
-    function _hashChallenge(Gear memory challengerGear)
-        private
-        pure
-        returns (bytes32)
-    {
+    function _hashChallenge(Gear memory challengerGear) private pure returns (bytes32) {
         // challenger's gear is hashed as a way to "lock" the selected general and fleetHash.
         // but, the internal logic of the general can still be modified
-        return
-            keccak256(
-                abi.encodePacked(
-                    challengerGear.general,
-                    challengerGear.fleetHash
-                )
-            );
+        return keccak256(abi.encodePacked(challengerGear.general, challengerGear.fleetHash));
     }
 
     modifier onlyOwnerOfGeneral(IGeneral general) {
@@ -137,36 +115,29 @@ contract Game {
         _;
     }
 
-    function isChallengerGeneralSet(bytes32 challengeHash)
-        private
-        view
-        returns (bool)
-    {
-        return
-            address(challenges[challengeHash].challenger.general) != address(0);
+    function isChallengerGeneralSet(bytes32 challengeHash) private view returns (bool) {
+        return address(challenges[challengeHash].challenger.general) != address(0);
     }
 
-    function isCallerGeneralSet(bytes32 challengeHash)
-        private
-        view
-        returns (bool)
-    {
+    function isCallerGeneralSet(bytes32 challengeHash) private view returns (bool) {
         return address(challenges[challengeHash].caller.general) != address(0);
     }
 
     // constant to scale uints into percentages (1e4 == 100%)
     uint96 private constant PERCENTAGE_SCALE = 1e4;
 
-    function submitChallenge(
-        Gear calldata gear,
-        uint96 facilitatorPercentage,
-        IGeneral preferredOpponent
-    ) external payable onlyOwnerOfGeneral(gear.general) {
+    function submitChallenge(Gear calldata gear, uint96 facilitatorPercentage, IGeneral preferredOpponent)
+        external
+        payable
+        onlyOwnerOfGeneral(gear.general)
+    {
         bytes32 challengeHash = _hashChallenge(gear);
-        if (isChallengerGeneralSet(challengeHash))
+        if (isChallengerGeneralSet(challengeHash)) {
             revert ChallengeAldreadyExists();
-        if (facilitatorPercentage > PERCENTAGE_SCALE)
+        }
+        if (facilitatorPercentage > PERCENTAGE_SCALE) {
             revert FaciliatorPercentageUnitsWrong();
+        }
 
         challenges[challengeHash].challenger = gear;
         challenges[challengeHash].bidAmount = msg.value;
@@ -189,28 +160,24 @@ contract Game {
         payable
         onlyOwnerOfGeneral(gear.general)
     {
-        if (!isChallengerGeneralSet(challengeHash))
+        if (!isChallengerGeneralSet(challengeHash)) {
             revert ChallengeDoesNotExist();
+        }
         if (isCallerGeneralSet(challengeHash)) revert ChallengeAldreadyLocked();
 
-        IGeneral preferredOpponent = challenges[challengeHash]
-            .preferredOpponent;
-        if (
-            address(preferredOpponent) != address(0) &&
-            preferredOpponent != gear.general
-        ) revert ChallengerDoesNotWantToPlayAgainstYou();
+        IGeneral preferredOpponent = challenges[challengeHash].preferredOpponent;
+        if (address(preferredOpponent) != address(0) && preferredOpponent != gear.general) {
+            revert ChallengerDoesNotWantToPlayAgainstYou();
+        }
 
-        if (msg.value < challenges[challengeHash].bidAmount)
+        if (msg.value < challenges[challengeHash].bidAmount) {
             revert NotEnoughEth();
+        }
 
         // lock the challenge by making caller non-null
         challenges[challengeHash].caller = gear;
 
-        emit ChallengeAccepted(
-            challengeHash,
-            address(gear.general),
-            gear.fleetHash
-        );
+        emit ChallengeAccepted(challengeHash, address(gear.general), gear.fleetHash);
     }
 
     function modifyChallenge(
@@ -220,36 +187,30 @@ contract Game {
         IGeneral newPreferredOpponent
     ) external payable onlyOwnerOfGeneral(oldGear.general) {
         bytes32 challengeHash = _hashChallenge(oldGear);
-        if (!isChallengerGeneralSet(challengeHash))
+        if (!isChallengerGeneralSet(challengeHash)) {
             revert ChallengeDoesNotExist();
+        }
         if (isCallerGeneralSet(challengeHash)) revert ChallengeAldreadyLocked();
-        if (newFacilitatorPercentage > PERCENTAGE_SCALE)
+        if (newFacilitatorPercentage > PERCENTAGE_SCALE) {
             revert FaciliatorPercentageUnitsWrong();
+        }
 
         uint256 oldBidAmount = challenges[challengeHash].bidAmount;
         if (newBidAmount > oldBidAmount) {
-            if (msg.value < (newBidAmount - oldBidAmount))
+            if (msg.value < (newBidAmount - oldBidAmount)) {
                 revert NotEnoughEth();
+            }
         } else if (newBidAmount < oldBidAmount) {
             payable(msg.sender).transfer(oldBidAmount - newBidAmount);
         }
         challenges[challengeHash].bidAmount = newBidAmount;
-        challenges[challengeHash]
-            .facilitatorPercentage = newFacilitatorPercentage;
+        challenges[challengeHash].facilitatorPercentage = newFacilitatorPercentage;
         challenges[challengeHash].preferredOpponent = newPreferredOpponent;
 
-        emit ChallengeModified(
-            challengeHash,
-            newBidAmount,
-            newFacilitatorPercentage,
-            address(newPreferredOpponent)
-        );
+        emit ChallengeModified(challengeHash, newBidAmount, newFacilitatorPercentage, address(newPreferredOpponent));
     }
 
-    function withdrawChallenge(Gear calldata gear, uint256 challengeIdx)
-        external
-        onlyOwnerOfGeneral(gear.general)
-    {
+    function withdrawChallenge(Gear calldata gear, uint256 challengeIdx) external onlyOwnerOfGeneral(gear.general) {
         bytes32 challengeHash = _hashChallenge(gear);
         if (isCallerGeneralSet(challengeHash)) revert ChallengeAldreadyLocked();
 
@@ -258,13 +219,12 @@ contract Game {
             payable(msg.sender).transfer(bidAmount);
         }
 
-        if (challengeHashes[challengeIdx] != challengeHash)
+        if (challengeHashes[challengeIdx] != challengeHash) {
             revert InvalidChallengeIndex();
+        }
 
         delete challenges[challengeHash];
-        challengeHashes[challengeIdx] = challengeHashes[
-            challengeHashes.length - 1
-        ];
+        challengeHashes[challengeIdx] = challengeHashes[challengeHashes.length - 1];
         challengeHashes.pop();
 
         emit ChallengeWithdrawn(challengeHash);
@@ -300,19 +260,10 @@ contract Game {
     ) external {
         revealFleet(fleetHash1, fleet1, salt1);
         revealFleet(fleetHash2, fleet2, salt2);
-        startBattle(
-            challengeHash,
-            challengeIdx,
-            maxTurns,
-            facilitatorFeeAddress
-        );
+        startBattle(challengeHash, challengeIdx, maxTurns, facilitatorFeeAddress);
     }
 
-    function revealFleet(
-        uint96 fleetHash,
-        uint256 fleet,
-        bytes32 salt
-    ) public {
+    function revealFleet(uint96 fleetHash, uint256 fleet, bytes32 salt) public {
         // In order to obfuscate the fleet that a player starts with from the opponent,
         // we use fleetHash when commiting a/to Challenge.
         // After the challenge is accepted, the game is locked. Nothing can be changed about it.
@@ -321,10 +272,7 @@ contract Game {
         // in order to prevent memoization of fleet (rainbow attack), an optional salt can be
         // used to make it harder to reverse the hashing operation. salt can be any data.
 
-        if (
-            fleetHash !=
-            uint96(uint256(keccak256(abi.encodePacked(fleet, salt))))
-        ) revert InvalidFleetHash();
+        if (fleetHash != uint96(uint256(keccak256(abi.encodePacked(fleet, salt))))) revert InvalidFleetHash();
 
         // this function not only makes sure that the revealed fleet actually corresponds to the
         // provided fleetHash earlier, but also makes sure that fleet obeys the rules of the game,
@@ -332,10 +280,7 @@ contract Game {
         uint256 board = fleet.validateFleetAndConvertToBoard();
 
         // also store the board representation of the fleet for faster lookup
-        fleetsAndBoards[fleetHash] = FleetAndBoard(
-            uint64(fleet),
-            uint192(board)
-        );
+        fleetsAndBoards[fleetHash] = FleetAndBoard(uint64(fleet), uint192(board));
 
         emit FleetRevealed(fleetHash, fleet, salt);
     }
@@ -370,21 +315,22 @@ contract Game {
         uint256[] gameHistory;
     }
 
-    function startBattle(
-        bytes32 challengeHash,
-        uint256 challengeIdx,
-        uint256 maxTurns,
-        address facilitatorFeeAddress
-    ) public {
+    function startBattle(bytes32 challengeHash, uint256 challengeIdx, uint256 maxTurns, address facilitatorFeeAddress)
+        public
+    {
         GameState memory gs = _getInitialGameState(challengeHash, maxTurns);
 
-        if (address(gs.generals[1]) == address(0))
+        if (address(gs.generals[1]) == address(0)) {
             revert ChallengeNeedsToBeLocked();
-        if (gs.fleets[0] == 0 || gs.fleets[1] == 0)
+        }
+        if (gs.fleets[0] == 0 || gs.fleets[1] == 0) {
             revert FleetsNeedToHaveBeenRevealed();
+        }
         if (
             ((maxTurns % 2) != 0) || (maxTurns < 21) // 21 is the least amount of moves to win the game
-        ) revert InvalidMaxTurns();
+        ) {
+            revert InvalidMaxTurns();
+        }
 
         uint256 i;
         for (; i < maxTurns; i++) {
@@ -392,16 +338,14 @@ contract Game {
 
             uint256 returnedVal;
             uint256 cellToFire;
-            try
-                gs.generals[gs.currentPlayerIdx].fire{gas: 5_000}(
-                    gs.boards[gs.currentPlayerIdx],
-                    gs.attacks[gs.currentPlayerIdx],
-                    gs.attacks[gs.otherPlayerIdx],
-                    gs.lastMoves[gs.currentPlayerIdx],
-                    gs.lastMoves[gs.otherPlayerIdx],
-                    gs.opponentsDiscoveredFleet[gs.currentPlayerIdx]
-                )
-            returns (uint256 ret) {
+            try gs.generals[gs.currentPlayerIdx].fire{gas: 5_000}(
+                gs.boards[gs.currentPlayerIdx],
+                gs.attacks[gs.currentPlayerIdx],
+                gs.attacks[gs.otherPlayerIdx],
+                gs.lastMoves[gs.currentPlayerIdx],
+                gs.lastMoves[gs.otherPlayerIdx],
+                gs.opponentsDiscoveredFleet[gs.currentPlayerIdx]
+            ) returns (uint256 ret) {
                 returnedVal = ret;
                 cellToFire = ret & 63; // take last 6 bits only. 63 is 111111 in binary
             } catch {}
@@ -410,37 +354,24 @@ contract Game {
             gs.lastMoves[gs.currentPlayerIdx] = returnedVal;
 
             // duplicate moves are ok
-            if (
-                !gs.attacks[gs.currentPlayerIdx].isOfType(
-                    cellToFire,
-                    Attacks.UNTOUCHED
-                )
-            ) {
+            if (!gs.attacks[gs.currentPlayerIdx].isOfType(cellToFire, Attacks.UNTOUCHED)) {
                 gs.currentPlayerIdx = gs.otherPlayerIdx;
                 continue;
             }
 
-            uint256 hitShipType = gs.boards[gs.otherPlayerIdx].getShipAt(
-                cellToFire
-            );
+            uint256 hitShipType = gs.boards[gs.otherPlayerIdx].getShipAt(cellToFire);
 
             if (hitShipType == Fleet.EMPTY) {
-                gs.attacks[gs.currentPlayerIdx] = gs
-                    .attacks[gs.currentPlayerIdx]
-                    .markAs(cellToFire, Attacks.MISS);
+                gs.attacks[gs.currentPlayerIdx] = gs.attacks[gs.currentPlayerIdx].markAs(cellToFire, Attacks.MISS);
                 gs.currentPlayerIdx = gs.otherPlayerIdx;
                 continue;
             }
 
             // it's a hit
-            gs.attacks[gs.currentPlayerIdx] = gs
-                .attacks[gs.currentPlayerIdx]
-                .markAs(cellToFire, Attacks.HIT);
+            gs.attacks[gs.currentPlayerIdx] = gs.attacks[gs.currentPlayerIdx].markAs(cellToFire, Attacks.HIT);
 
             // decrement number of cells remaining for the hit ship
-            uint256 hitShipRemainingCells = --gs.remainingCells[
-                gs.otherPlayerIdx
-            ][hitShipType - 1];
+            uint256 hitShipRemainingCells = --gs.remainingCells[gs.otherPlayerIdx][hitShipType - 1];
 
             if (hitShipRemainingCells == 0) {
                 // ship destroyed
@@ -452,12 +383,9 @@ contract Game {
                     break;
                 }
 
-                gs.opponentsDiscoveredFleet[gs.currentPlayerIdx] = gs
-                    .fleets[gs.otherPlayerIdx]
-                    .copyShipTo(
-                        gs.opponentsDiscoveredFleet[gs.currentPlayerIdx],
-                        uint8(hitShipType)
-                    );
+                gs.opponentsDiscoveredFleet[gs.currentPlayerIdx] = gs.fleets[gs.otherPlayerIdx].copyShipTo(
+                    gs.opponentsDiscoveredFleet[gs.currentPlayerIdx], uint8(hitShipType)
+                );
             }
 
             gs.currentPlayerIdx = gs.otherPlayerIdx;
@@ -467,14 +395,8 @@ contract Game {
             // game terminated due to maxTotalTurns
             gs.gameHistory[i + 1] = 255;
 
-            uint256 numberOfShipDestroyed0 = _getNumberOfDestroyedShips(
-                gs.remainingCells,
-                0
-            );
-            uint256 numberOfShipDestroyed1 = _getNumberOfDestroyedShips(
-                gs.remainingCells,
-                1
-            );
+            uint256 numberOfShipDestroyed0 = _getNumberOfDestroyedShips(gs.remainingCells, 0);
+            uint256 numberOfShipDestroyed1 = _getNumberOfDestroyedShips(gs.remainingCells, 1);
 
             if (numberOfShipDestroyed0 > numberOfShipDestroyed1) {
                 gs.winnerIdx = 0;
@@ -487,13 +409,12 @@ contract Game {
 
         distributeFunds(challengeHash, gs, maxTurns, facilitatorFeeAddress);
 
-        if (challengeHashes[challengeIdx] != challengeHash)
+        if (challengeHashes[challengeIdx] != challengeHash) {
             revert InvalidChallengeIndex();
+        }
 
         delete challenges[challengeHash];
-        challengeHashes[challengeIdx] = challengeHashes[
-            challengeHashes.length - 1
-        ];
+        challengeHashes[challengeIdx] = challengeHashes[challengeHashes.length - 1];
         challengeHashes.pop();
     }
 
@@ -505,12 +426,10 @@ contract Game {
     ) private {
         uint256 bidAmount = challenges[challengeHash].bidAmount;
         uint256 amountToSplit = 2 * bidAmount;
-        uint256 facilitatorPercentage = challenges[challengeHash]
-            .facilitatorPercentage;
+        uint256 facilitatorPercentage = challenges[challengeHash].facilitatorPercentage;
 
         if (amountToSplit > 0) {
-            uint256 facilitatorFee = (amountToSplit * facilitatorPercentage) /
-                PERCENTAGE_SCALE;
+            uint256 facilitatorFee = (amountToSplit * facilitatorPercentage) / PERCENTAGE_SCALE;
             payable(facilitatorFeeAddress).transfer(facilitatorFee);
 
             if (gs.winnerIdx == NO_WINNER) {
@@ -519,9 +438,7 @@ contract Game {
                 payable(gs.generals[1].owner()).transfer(amountToSplit);
             } else {
                 amountToSplit -= facilitatorFee;
-                payable(gs.generals[gs.winnerIdx].owner()).transfer(
-                    amountToSplit
-                );
+                payable(gs.generals[gs.winnerIdx].owner()).transfer(amountToSplit);
             }
         }
 
@@ -545,36 +462,22 @@ contract Game {
         view
         returns (GameState memory initialGameState)
     {
-        initialGameState.generals = [
-            challenges[challengeHash].challenger.general,
-            challenges[challengeHash].caller.general
-        ];
+        initialGameState.generals =
+            [challenges[challengeHash].challenger.general, challenges[challengeHash].caller.general];
 
         {
             FleetAndBoard[2] memory fleetAndBoardsCached = [
                 fleetsAndBoards[challenges[challengeHash].challenger.fleetHash],
                 fleetsAndBoards[challenges[challengeHash].caller.fleetHash]
             ];
-            initialGameState.fleets = [
-                uint256(fleetAndBoardsCached[0].fleet),
-                uint256(fleetAndBoardsCached[1].fleet)
-            ];
-            initialGameState.boards = [
-                uint256(fleetAndBoardsCached[0].board),
-                uint256(fleetAndBoardsCached[1].board)
-            ];
+            initialGameState.fleets = [uint256(fleetAndBoardsCached[0].fleet), uint256(fleetAndBoardsCached[1].fleet)];
+            initialGameState.boards = [uint256(fleetAndBoardsCached[0].board), uint256(fleetAndBoardsCached[1].board)];
         }
 
-        initialGameState.attacks = [
-            Attacks.EMPTY_ATTACKS,
-            Attacks.EMPTY_ATTACKS
-        ];
+        initialGameState.attacks = [Attacks.EMPTY_ATTACKS, Attacks.EMPTY_ATTACKS];
         initialGameState.lastMoves = [uint256(255), uint256(255)]; // initialize with 255 which indicates start of the game.
         //                                        valid moves are indicies into the 8x8 board, i.e. [0, 64)
-        initialGameState.opponentsDiscoveredFleet = [
-            Fleet.EMPTY_FLEET,
-            Fleet.EMPTY_FLEET
-        ];
+        initialGameState.opponentsDiscoveredFleet = [Fleet.EMPTY_FLEET, Fleet.EMPTY_FLEET];
         initialGameState.remainingCells = [
             [
                 Fleet.PATROL_LENGTH,
@@ -606,10 +509,11 @@ contract Game {
         initialGameState.gameHistory[0] = initialGameState.currentPlayerIdx;
     }
 
-    function _getNumberOfDestroyedShips(
-        uint256[5][2] memory remainingCells,
-        uint256 playerIdx
-    ) private pure returns (uint256 numberOfDestroyedShips) {
+    function _getNumberOfDestroyedShips(uint256[5][2] memory remainingCells, uint256 playerIdx)
+        private
+        pure
+        returns (uint256 numberOfDestroyedShips)
+    {
         for (uint256 i = 0; i < 5; i++) {
             if (remainingCells[playerIdx][i] == 0) {
                 numberOfDestroyedShips++;
