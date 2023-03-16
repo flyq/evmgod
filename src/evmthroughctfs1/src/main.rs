@@ -87,5 +87,12 @@ async fn main() -> Result<()> {
 
     println!("abi: {:?}", base_contract.encode("solved", ())?);
 
+    let abi = parse_abi(&[
+        "function getImplementation() external view returns (address implementation)",
+    ])?;
+    let base_contract = BaseContract::from(abi);
+
+    println!("abi: {:?}", base_contract.encode("getImplementation", ())?);
+
     Ok(())
 }
