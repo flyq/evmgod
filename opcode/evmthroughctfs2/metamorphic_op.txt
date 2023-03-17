@@ -1,0 +1,25 @@
+pc |   opcode |            stack |                       memory
+
+[00]	PC	
+[01]	PUSH1	20
+[03]	DUP2	
+[04]	PC	
+[05]	PUSH1	1c
+[07]	CALLER	
+[08]	GAS	
+[09]	PUSH4	aaf10f42
+[0e]	DUP8	
+[0f]	MSTORE	
+[10]	STATICCALL	
+[11]	ISZERO	
+[12]	DUP2	
+[13]	MLOAD	
+[14]	DUP1	
+[15]	EXTCODESIZE	
+[16]	DUP1	
+[17]	SWAP4	
+[18]	DUP1	
+[19]	SWAP2	
+[1a]	SWAP3	
+[1b]	EXTCODECOPY	
+[1c]	RETURN	
