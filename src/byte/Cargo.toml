@@ -7,4 +7,4 @@ edition = "2021"
 
 [dependencies]
 hex = "0.4.3"
-revm = { git = "https://github.com/flyq/revm-debug", rev = "b8e712f", default-features = false }
+revm = { git = "https://github.com/0xevm/revm-debug", rev = "b8e712f", default-features = false }
